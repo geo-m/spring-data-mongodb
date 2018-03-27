@@ -105,9 +105,9 @@ public class DateOperators {
 	}
 
 	/**
-	 * Timezone represents a MongoDB timezone abstraction which can be the timezone ID or offset as a String. Also accepts
-	 * a {@link AggregationExpression} or {@link Field} that resolves to a {@link String} of either Olson Timezone
-	 * Identifier or a UTC Offset.<br />
+	 * Timezone represents a MongoDB timezone abstraction which can be represented with a timezone ID or offset as a
+	 * {@link String}. Also accepts a {@link AggregationExpression} or {@link Field} that resolves to a {@link String} of
+	 * either Olson Timezone Identifier or a UTC Offset.<br />
 	 * <table valign="top">
 	 * <tr>
 	 * <th>Format</th>
@@ -126,7 +126,7 @@ public class DateOperators {
 	 * +/-[hh], e.g. "+03"</td>
 	 * </tr>
 	 * </table>
-	 * <strong>NOTE:</strong>Support for timezones in aggregations Requires MongoDB 3.6 or later.
+	 * <strong>NOTE: </strong>Support for timezones in aggregations Requires MongoDB 3.6 or later.
 	 *
 	 * @author Christoph Strobl
 	 * @since 2.1
@@ -135,18 +135,18 @@ public class DateOperators {
 
 		private static final Timezone NONE = new Timezone(null);
 
-		private final Object value;
+		private final @Nullable Object value;
 
 		private Timezone(@Nullable Object value) {
 			this.value = value;
 		}
 
 		/**
-		 * Return a non {@link Timezone}.
+		 * Return an empty {@link Timezone}.
 		 *
 		 * @return never {@literal null}.
 		 */
-		static Timezone none() {
+		public static Timezone none() {
 			return NONE;
 		}
 
@@ -158,7 +158,7 @@ public class DateOperators {
 		 *          {@link AggregationExpression} resulting in the timezone.
 		 * @return new instance of {@link Timezone}.
 		 */
-		static Timezone valueOf(Object value) {
+		public static Timezone valueOf(Object value) {
 
 			Assert.notNull(value, "Value must not be null!");
 			return new Timezone(value);
@@ -170,7 +170,7 @@ public class DateOperators {
 		 * @param fieldReference the {@link Field} holding the timezone.
 		 * @return new instance of {@link Timezone}.
 		 */
-		static Timezone ofField(String fieldReference) {
+		public static Timezone ofField(String fieldReference) {
 			return valueOf(Fields.field(fieldReference));
 		}
 
@@ -181,7 +181,7 @@ public class DateOperators {
 		 * @param value the {@link AggregationExpression} resulting in the timezone.
 		 * @return new instance of {@link Timezone}.
 		 */
-		static Timezone ofExpression(AggregationExpression expression) {
+		public static Timezone ofExpression(AggregationExpression expression) {
 			return valueOf(expression);
 		}
 	}
@@ -1783,6 +1783,12 @@ public class DateOperators {
 			super(value);
 		}
 
+		/**
+		 * Creates new {@link DateFromPartsWithYear}.
+		 *
+		 * @return new instance of {@link DateFromPartsWithYear}.
+		 * @since 2.1
+		 */
 		public static DateFromPartsWithYear dateFromParts() {
 			return year -> new DateFromParts(Collections.singletonMap("year", year));
 		}
@@ -1952,6 +1958,12 @@ public class DateOperators {
 			super(value);
 		}
 
+		/**
+		 * Creates new {@link IsoDateFromPartsWithYear}.
+		 *
+		 * @return new instance of {@link IsoDateFromPartsWithYear}.
+		 * @since 2.1
+		 */
 		public static IsoDateFromPartsWithYear dateFromParts() {
 			return year -> new IsoDateFromParts(Collections.singletonMap("isoWeekYear", year));
 		}
@@ -1994,7 +2006,7 @@ public class DateOperators {
 		 * Set the {@literal day of week} to the given value which must resolve to a weekday in range {@code 1 - 7}. Can be
 		 * a simple value, {@link Field field reference} or {@link AggregationExpression expression}.
 		 *
-		 * @param isoWeek must not be {@literal null}.
+		 * @param day must not be {@literal null}.
 		 * @return new instance.
 		 * @throws IllegalArgumentException if given {@literal isoWeek} is {@literal null}.
 		 */
@@ -2049,7 +2061,7 @@ public class DateOperators {
 		 * <strong>NOTE:</strong> Requires MongoDB 3.6 or later.
 		 *
 		 * @param timezone must not be {@literal null}. Consider {@link Timezone#none()} instead.
-		 * @return new instance of {@link DateFromParts}.
+		 * @return new instance of {@link IsoDateFromParts}.
 		 * @throws IllegalArgumentException if given {@literal timezone} is {@literal null}.
 		 */
 		@Override
@@ -2254,6 +2266,7 @@ public class DateOperators {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private static <T extends ZonedDateAggregationExpression> T applyTimezone(T instance, Timezone timezone) {
 		return !ObjectUtils.nullSafeEquals(Timezone.none(), timezone) && !instance.hasTimezone()
 				? (T) instance.withTimezone(timezone) : instance;
